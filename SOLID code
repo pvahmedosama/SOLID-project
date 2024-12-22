@@ -1,0 +1,67 @@
+from abc import ABC, abstractmethod
+
+
+class Task:
+    """Represents a task with a description."""
+    def __init__(self, description: str):
+        self.description = description
+
+
+class ToDoList:
+    """Manages a list of tasks."""
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, task: Task):
+        self.tasks.append(task)
+
+    def get_total_tasks(self) -> int:
+        return len(self.tasks)
+
+
+class TaskModification(ABC):
+    """Abstract base class for task modification strategies."""
+    @abstractmethod
+    def modify_tasks(self, total: int) -> int:
+        pass
+
+
+class NoModification(TaskModification):
+    """No modification strategy."""
+    def modify_tasks(self, total: int) -> int:
+        return total
+
+
+class RemoveCertainTasks(TaskModification):
+    """Remove a fixed number of tasks."""
+    def __init__(self, tasks_to_remove: int):
+        self.tasks_to_remove = tasks_to_remove
+
+    def modify_tasks(self, total: int) -> int:
+        return max(total - self.tasks_to_remove, 0)
+
+
+class ToDoListManager:
+    """Handles the to-do list management with a modification strategy."""
+    def __init__(self, todo_list: ToDoList, modification_strategy: TaskModification):
+        self.todo_list = todo_list
+        self.modification_strategy = modification_strategy
+
+    def get_final_task_count(self) -> int:
+        total_tasks = self.todo_list.get_total_tasks()
+        return self.modification_strategy.modify_tasks(total_tasks)
+
+
+# Example usage
+if __name__ == "__main__":
+    todo_list = ToDoList()
+    todo_list.add_task(Task("Buy groceries"))
+    todo_list.add_task(Task("Write report"))
+
+    # Apply no modification
+    manager_no_modification = ToDoListManager(todo_list, NoModification())
+    print("Total tasks (no modification):", manager_no_modification.get_final_task_count())
+
+    # Apply modification by removing tasks
+    manager_remove_tasks = ToDoListManager(todo_list, RemoveCertainTasks(1))
+    print("Total tasks (1 task removed):", manager_remove_tasks.get_final_task_count())
